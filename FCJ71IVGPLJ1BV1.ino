@@ -1,3 +1,7 @@
+#include <SoftwareSerial.h>
+
+SoftwareSerial HC12(1, 2); // TX, RX of HC-12
+
 #define leftCenterSensor   9
 #define leftNearSensor     A4
 #define leftFarSensor      4
@@ -14,7 +18,7 @@ int rightFarReading;
 
 int replaystage;
 
-#define leapTime 200
+#define leapTime 180
 
 int ENB = 5;
 #define leftMotor1  6
@@ -31,7 +35,6 @@ int pathLength;
 int readLength;
 
 void setup() {
-
   pinMode(leftCenterSensor, INPUT);
   pinMode(leftNearSensor, INPUT);
   pinMode(leftFarSensor, INPUT);
@@ -48,9 +51,14 @@ void setup() {
   pinMode(ENB, OUTPUT);
   analogWrite(ENA, 100);
   analogWrite(ENB, 100);
+
+  // HC12 serial
+  pinMode(1, INPUT);
+  pinMode(2, OUTPUT);
   
   pinMode(led, OUTPUT);
   Serial.begin(9600);
+  HC12.begin(9600);
   digitalWrite(led, HIGH);
 
   delay(1000);
@@ -155,7 +163,7 @@ void leftHandWall() {
     readSensors();
 
     if (leftFarReading > 200) {
-      delay(leapTime - 30);
+      delay(leapTime - 40);
       readSensors();
 
       if (rightFarReading > 200 && leftFarReading > 200) {
@@ -199,6 +207,12 @@ void done() {
   replaystage = 1;
   path[pathLength] = 'D';
   pathLength++;
+
+  int i=0;
+  for(;i<pathLength;i++){
+    HC12.write(path[i]);
+  }
+
   while (convertValue(digitalRead(leftFarSensor)) > 200) {
     digitalWrite(led, LOW);
     delay(150);
@@ -217,7 +231,7 @@ void turnLeft() {
     digitalWrite(rightMotor2, LOW);
     delay(2);
     digitalWrite(leftMotor1, LOW);
-    digitalWrite(leftMotor2, LOW);
+    digitalWrite(leftMotor2, HIGH);
     digitalWrite(rightMotor1, LOW);
     digitalWrite(rightMotor2, LOW);
     delay(1);
@@ -230,7 +244,7 @@ void turnLeft() {
     digitalWrite(rightMotor2, LOW);
     delay(2);
     digitalWrite(leftMotor1, LOW);
-    digitalWrite(leftMotor2, LOW);
+    digitalWrite(leftMotor2, HIGH);
     digitalWrite(rightMotor1, LOW);
     digitalWrite(rightMotor2, LOW);
     delay(1);
@@ -355,7 +369,7 @@ void turnAround() {
     digitalWrite(rightMotor2, LOW);
     delay(2);
     digitalWrite(leftMotor1, LOW);
-    digitalWrite(leftMotor2, LOW);
+    digitalWrite(leftMotor2, HIGH);
     digitalWrite(rightMotor1, LOW);
     digitalWrite(rightMotor2, LOW);
     delay(1);
